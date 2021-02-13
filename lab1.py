@@ -16,7 +16,7 @@ for i in range(8):
     list2.append(list_X[i][1])
     list3.append(list_X[i][2])
 
-print("X:", list_X)
+print("X:", list_X)jdjdjdj
 print()
 
 # Генерируем коеффициенты
