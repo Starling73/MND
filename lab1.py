@@ -16,7 +16,7 @@ for i in range(8):
     list2.append(list_X[i][1])
     list3.append(list_X[i][2])
 
-print("X:", list_X)jdjdjdj
+print("X:", list_X)
 print()
 
 # Генерируем коеффициенты
@@ -69,3 +69,6 @@ for i in list_Y:
         list_differ.append(Y_ser - i)
 
 print("Ответ:", list_X[list_Y.index(Y_ser - min(list_differ))])
+
+# Дополнительное задание: найти максимальный Y
+print("Максимальный Y:", max(list_Y))
