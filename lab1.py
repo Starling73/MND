@@ -69,3 +69,6 @@ for i in list_Y:
         list_differ.append(Y_ser - i)
 
 print("Ответ:", list_X[list_Y.index(Y_ser - min(list_differ))])
+
+# Дополнительное задание: найти максимальный Y
+print("Максимальный Y:", max(list_Y))
