@@ -98,7 +98,7 @@ def odnoridna_dispersion():
             return False
         for rkr in range(len(rkr_table[m])):
             if ruv < rkr_table[m][rkr]:
-                p = rkr
+                p = rkr # тому що поза циклом не можливо використати змінну rkr
     return p_list[p]
 
 
