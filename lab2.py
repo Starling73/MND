@@ -2,6 +2,7 @@ import math
 from random import randint
 import numpy as np
 
+
 p_list = (0.99, 0.98, 0.95, 0.90)
 rkr_table = {2: (1.73, 1.72, 1.71, 1.69),
              6: (2.16, 2.13, 2.10, 2.00),
