@@ -2,7 +2,6 @@ import math
 from random import randint
 import numpy as np
 
-
 p_list = (0.99, 0.98, 0.95, 0.90)
 rkr_table = {2: (1.73, 1.72, 1.71, 1.69),
              6: (2.16, 2.13, 2.10, 2.00),
@@ -70,6 +69,7 @@ B2 = np.linalg.det(np.dot([[1, MX1, MY],
                                          [MX1, A1, A2],
                                          [MX2, A2, A3]])))
 
+
 def checkRegression():
     NORM_Y_1 = round(B0 - B1 - B2, 1)
     NORM_Y_2 = round(B0 + B1 - B2, 1)
@@ -78,6 +78,7 @@ def checkRegression():
         print("Значення перевірки нормаваного рівняння регресії сходяться")
     else:
         print("Значення перевірки нормаваного рівняння регресії НЕ сходяться")
+
 
 NORM_Y = B0 - B1 + B2
 
@@ -99,7 +100,7 @@ def odnoridna_dispersion():
             return False
         for rkr in range(len(rkr_table[m])):
             if ruv < rkr_table[m][rkr]:
-                p = rkr # тому що поза циклом не можливо використати змінну rkr
+                p = rkr  # тому що поза циклом не можливо використати змінну rkr
     return p_list[p]
 
 
