@@ -5,8 +5,6 @@ from scipy.stats import f, t
 from numpy.linalg import solve
 
 
-
-
 def regression(x, b):
     y = sum([x[i] * b[i] for i in range(len(x))])
     return y
@@ -82,34 +80,21 @@ def find_coef(X, Y, norm=False):
 
 def bs(x, y, y_aver, n):
     res = [sum(1 * y for y in y_aver) / n]
-    for i in range(7):
+    for i in range(len(x[0])):
         b = sum(j[0] * j[1] for j in zip(x[:, i], y_aver)) / n
         res.append(b)
     return res
 
 
-def kriteriy_studenta2(x, y, y_aver, n, m):
-    S_kv = dispersion(y, y_aver, n, m)
-    s_kv_aver = sum(S_kv) / n
-    s_Bs = (s_kv_aver / n / m) ** 0.5
-    Bs = bs(x, y, y_aver, n)
-    ts = [round(abs(B) / s_Bs, 3) for B in Bs]
-
-    return ts
-
-
-def kriteriy_studenta(x, y_average, n, m, dispersion):
-    dispersion_average = sum(dispersion) / n
+# Для перевірки за критерієм Стьюдента не потрібно було створювати дві функції, адже вони були схожі
+def kriteriy_studenta(x, y, y_average, n, m):
+    S_kv = dispersion(y, y_average, n, m)
+    dispersion_average = sum(S_kv) / n
     s_beta_s = (dispersion_average / n / m) ** 0.5
 
-    beta = [sum(1 * y for y in y_average) / n]
-    for i in range(3):
-        b = sum(j[0] * j[1] for j in zip(x[:, i], y_average)) / n
-        beta.append(b)
+    Bs = bs(x, y, y_average, n)
 
-    t = [round(abs(b) / s_beta_s, 3) for b in beta]
-
-    return t
+    return [round(abs(B) / s_beta_s, 3) for B in Bs]
 
 
 def kriteriy_fishera(y, y_average, y_new, n, m, d, dispersion):
@@ -133,7 +118,7 @@ def check(X, Y, B, n, m, norm=False):
     qq = (1 + 0.95) / 2
     student_cr_table = t.ppf(df=f3, q=qq)
 
-    ts = kriteriy_studenta2(X[:, 1:], Y, y_aver, n, m)
+    ts = kriteriy_studenta(X[:, 1:], Y, y_aver, n, m)
 
     temp_cohren = f.ppf(q=(1 - q / f1), dfn=f2, dfd=(f1 - 1) * f2)
     cohren_cr_table = temp_cohren / (temp_cohren + f1 - 1)
@@ -284,7 +269,7 @@ def linear(n, m):
 
     qq = (1 + 0.95) / 2
     student_cr_table = t.ppf(df=f3, q=qq)
-    student_t = kriteriy_studenta(x_norm[:, 1:], y_average, n, m, dispersion_arr)
+    student_t = kriteriy_studenta(x_norm[:, 1:], y, y_average, n, m)
 
     print('\nТабличне значення критерій Стьюдента:\n', student_cr_table)
     print('Розрахункове значення критерій Стьюдента:\n', student_t)
@@ -320,6 +305,7 @@ def linear(n, m):
 def main(n, m):
     if not linear(n, m):
         with_interaction_effect(n, m)
+
 
 x_range = ((15, 45), (-70, -10), (15, 30))
 
