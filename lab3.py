@@ -1,12 +1,13 @@
 from random import randint
 import numpy as np
-
+from scipy.stats import t as t_criterium
 
 Min_x1, Max_x1 = 10, 40
 Min_x2, Max_x2 = 10, 60
 Min_x3, Max_x3 = 10, 15
 
 M = 3
+
 
 # Find coefficients
 def findA(a, b=None):
@@ -62,16 +63,9 @@ def student(disp, m, y_r, x_n):
 
     f3 = N * (m - 1)
 
-    if f3 > 30:
-        t_t = table['inf']
-    elif f3 > 0:
-        t_t = table[f3]
-    else:
-        return
-
     result = []
     for i in t:
-        if i < t_t:
+        if i < t_criterium.ppf(q=0.975, df=f3):
             result.append(False)
         else:
             result.append(True)
@@ -217,7 +211,6 @@ def startExperiment(Min_x1, Max_x1, Min_x2, Max_x2, Min_x3, Max_x3):
         print("Збільшуємо кількість експериментів")
         M += 1
         startExperiment(Min_x1, Max_x1, Min_x2, Max_x2, Min_x3, Max_x3)
-
 
 
 startExperiment(Min_x1, Max_x1, Min_x2, Max_x2, Min_x3, Max_x3)
