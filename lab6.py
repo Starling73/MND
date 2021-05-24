@@ -5,8 +5,12 @@ from _decimal import Decimal
 from functools import reduce
 from itertools import compress
 from scipy.stats import f, t
+import time
 
 # Ініціалізація змінних
+time_cohran = 0
+time_student = 0
+time_fisher = 0
 xMin = [10, 10, 10]
 xMax = [40, 60, 15]
 x0 = [(xMax[_] + xMin[_]) / 2 for _ in range(3)]
@@ -108,22 +112,27 @@ def findCoeffs(factors, y_values):
 
 # Критерії
 def cochranCriteria(m, n, y_table):
-    def getCochranVal(f1, f2, q):
-        part_result1 = q / f2
-        params = [part_result1, f1, (f2 - 1) * f1]
-        fisher = f.isf(*params)
-        result = fisher / (fisher + (f2 - 1))
-        return Decimal(result).quantize(Decimal('.0001')).__float__()
+    global time_cohran
+    for i in range(10):
+        start_time_cohran = time.perf_counter()
 
+        def getCochranVal(f1, f2, q):
+            part_result1 = q / f2
+            params = [part_result1, f1, (f2 - 1) * f1]
+            fisher = f.isf(*params)
+            result = fisher / (fisher + (f2 - 1))
+            return Decimal(result).quantize(Decimal('.0001')).__float__()
+
+        variationsY = [numpy.var(i) for i in y_table]
+        variationMaxY = max(variationsY)
+        gp = variationMaxY / sum(variationsY)
+        f1 = m - 1
+        f2 = n
+        p = 0.95
+        q = 1 - p
+        gt = getCochranVal(f1, f2, q)
+        time_cohran += time.perf_counter() - start_time_cohran
     print("Перевірка рівномірності дисперсій за критерієм Кохрена: m = {}, N = {}".format(m, n))
-    variationsY = [numpy.var(i) for i in y_table]
-    variationMaxY = max(variationsY)
-    gp = variationMaxY / sum(variationsY)
-    f1 = m - 1
-    f2 = n
-    p = 0.95
-    q = 1 - p
-    gt = getCochranVal(f1, f2, q)
     print("Gp = {}; Gt = {}; f1 = {}; f2 = {}; q = {:.2f}".format(gp, gt, f1, f2, q))
     if gp < gt:
         print("Gp < Gt => дисперсії рівномірні - все правильно")
@@ -134,19 +143,24 @@ def cochranCriteria(m, n, y_table):
 
 
 def studentCriteria(m, n, y_table, betaCoeffs):
-    def getStudentVal(f3, q):
-        return Decimal(abs(t.ppf(q / 2, f3))).quantize(Decimal('.0001')).__float__()
+    global time_student
+    for i in range(10):
+        start_time_student = time.perf_counter()
+
+        def getStudentVal(f3, q):
+            return Decimal(abs(t.ppf(q / 2, f3))).quantize(Decimal('.0001')).__float__()
+
+        averageVariation = numpy.average(list(map(numpy.var, y_table)))
+        variationBetaS = averageVariation / n / m
+        standardDeviationBetaS = math.sqrt(variationBetaS)
+        Ti = [abs(betaCoeffs[i]) / standardDeviationBetaS for i in range(len(betaCoeffs))]
+        f3 = (m - 1) * n
+        q = 0.05
+        ourT = getStudentVal(f3, q)
+        importance = [True if el > ourT else False for el in list(Ti)]
+        time_student += time.perf_counter() - start_time_student
 
     print("Перевірка значимості коефіцієнтів регресії за критерієм Стьюдента: m = {}, N = {} ".format(m, n))
-    averageVariation = numpy.average(list(map(numpy.var, y_table)))
-    variationBetaS = averageVariation / n / m
-    standardDeviationBetaS = math.sqrt(variationBetaS)
-    Ti = [abs(betaCoeffs[i]) / standardDeviationBetaS for i in range(len(betaCoeffs))]
-    f3 = (m - 1) * n
-    q = 0.05
-    ourT = getStudentVal(f3, q)
-    importance = [True if el > ourT else False for el in list(Ti)]
-
     # print result data
     print("Оцінки коефіцієнтів βs: " + ", ".join(list(map(lambda x: str(round(float(x), 3)), betaCoeffs))))
     print("Коефіцієнти ts: " + ", ".join(list(map(lambda i: "{:.2f}".format(i), Ti))))
@@ -160,19 +174,24 @@ def studentCriteria(m, n, y_table, betaCoeffs):
 
 
 def fisherCriteria(m, N, d, tableX, tableY, coeffsB, importance):
-    def getFisherVal(f3, f4, q):
-        return Decimal(abs(f.isf(q, f4, f3))).quantize(Decimal('.0001')).__float__()
+    global time_fisher
+    for i in range(10):
+        start_time_fisher = time.perf_counter()
 
-    f3 = (m - 1) * N
-    f4 = N - d
-    q = 0.05
-    theorY = numpy.array([equationRegres(row[0], row[1], row[2], coeffsB) for row in tableX])
-    avgY = numpy.array(list(map(lambda el: numpy.average(el), tableY)))
-    Sad = m / (N - d) * sum((theorY - avgY) ** 2)
-    variationsY = numpy.array(list(map(numpy.var, tableY)))
-    Sv = numpy.average(variationsY)
-    Fp = float(Sad / Sv)
-    Ft = getFisherVal(f3, f4, q)
+        def getFisherVal(f3, f4, q):
+            return Decimal(abs(f.isf(q, f4, f3))).quantize(Decimal('.0001')).__float__()
+
+        f3 = (m - 1) * N
+        f4 = N - d
+        q = 0.05
+        theorY = numpy.array([equationRegres(row[0], row[1], row[2], coeffsB) for row in tableX])
+        avgY = numpy.array(list(map(lambda el: numpy.average(el), tableY)))
+        Sad = m / (N - d) * sum((theorY - avgY) ** 2)
+        variationsY = numpy.array(list(map(numpy.var, tableY)))
+        Sv = numpy.average(variationsY)
+        Fp = float(Sad / Sv)
+        Ft = getFisherVal(f3, f4, q)
+        time_fisher += time.perf_counter() - start_time_fisher
     theoreticalValsToPrint = list(
         zip(map(lambda x: "x1 = {0[1]:<10} x2 = {0[2]:<10} x3 = {0[3]:<10}".format(x), tableX), theorY))
     print("Перевірка адекватності моделі за критерієм Фішера: m = {}, N = {} для таблиці y_table".format(m, N))
@@ -198,7 +217,9 @@ def main(m, n):
     fisherCriteria(m, n, d, naturalPlan, arrY, coefficients, importance)
 
 
-
 m = 3
 n = 15
 main(m, n)
+print("Середній час перевірки за критерієм Кохрена:", time_cohran / 10)
+print("Середній час перевірки за критерієм Стьюдента:", time_student / 10)
+print("Середній час перевірки за критерієм Фішера:", time_fisher / 10)
