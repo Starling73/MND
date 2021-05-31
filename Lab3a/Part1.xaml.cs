@@ -97,6 +97,7 @@ namespace MND_L3a
             population[2] = new double[4];
             population[3] = new double[4];
             var startTime = DateTime.Now;
+            int counter = 0;
             for (int i = 0; i < population.Length; i++)
             {
                 for (int j = 0; j < population[i].Length; j++)
@@ -116,11 +117,21 @@ namespace MND_L3a
                     if (delta[i] == 0)
                     {
                         Succesful = true;
-                        await DisplayAlert("Result", $"Знайдені корені рівняння:\nX1 = {population[i][0]}\nX2 = {population[i][1]}\n" +
+                        if (counter <= 10)
+                        {
+                            await DisplayAlert("Result", $"Знайдені корені рівняння:\nX1 = {population[i][0]}\nX2 = {population[i][1]}\n" +
                             $"X3 = {population[i][2]}\nX4 = {population[i][3]}\n" +
                             $"Execution time = {(DateTime.Now - startTime).TotalMilliseconds} ms\n", "Got it!");
+                        }
+                        else
+                        {
+                            await DisplayAlert("Erorr", "The number of generations is more than 10", "Got it");
+                        }
+                        
                         break;
                     }
+                    counter++;
+
                 }
                 
                 chance_of_parenthood[0] = 1 / delta[0] / roulette_parameter;
