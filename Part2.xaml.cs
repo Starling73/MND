@@ -120,38 +120,51 @@ namespace MND_L2a
             double[] iterationData = new double[] { 100, 200, 500, 1000 };
 
             const int threshold = 4;
-            double w1 = 0;
-            double w2 = 0;
-            
-            int iterationsCount = 0;
-            int iterationsPointCount = 0;
-            int success = 0;
-            var startTime = DateTime.Now;
+            int solutionsCount = 0;
+            var randomGenerator = new Random();
+            var overallStartTime = DateTime.Now;
 
-            while (iterationsCount < iterationData[iterationPicker.SelectedIndex] && success < 4
-                && (DateTime.Now - startTime).TotalMilliseconds <= timeData[timePicker.SelectedIndex])
+            while ((DateTime.Now - overallStartTime).TotalSeconds <= 5)
             {
-                int currentPoint = iterationsPointCount % 4;
-                iterationsPointCount++;
+                double w1 = 0;
+                double w2 = 0;
 
-                double y = w1 * points[currentPoint].X + w2 * points[currentPoint].Y;
+                int iterationsCount = 0;
+                int iterationsPointCount = 0;
+                int success = 0;
 
-                if (((currentPoint < 2) && y >= threshold) || ((currentPoint >= 2) && y < threshold))
+                int rateChoiceSimulation = randomGenerator.Next(0, 6);
+                int timeChoiceSimulation = randomGenerator.Next(0, 4);
+                int iterationChoiceSimulation = randomGenerator.Next(0, 4);
+
+                var startTime = DateTime.Now;
+
+                while (iterationsCount < iterationData[iterationChoiceSimulation] && success < 4
+                    && (DateTime.Now - startTime).TotalMilliseconds <= timeData[timeChoiceSimulation])
+
                 {
-                    success++;
-                    continue;
+                    int currentPoint = iterationsPointCount % 4;
+                    iterationsPointCount++;
+
+                    double y = w1 * points[currentPoint].X + w2 * points[currentPoint].Y;
+
+                    if (((currentPoint < 2) && y >= threshold) || ((currentPoint >= 2) && y < threshold))
+                    {
+                        success++;
+                        continue;
+                    }
+
+                    double delta = threshold - y;
+                    w1 += delta * points[currentPoint].X * rateData[rateChoiceSimulation];
+                    w2 += delta * points[currentPoint].Y * rateData[rateChoiceSimulation];
+                    w1 = Math.Ceiling(w1 * Math.Pow(10, 7)) / Math.Pow(10, 7);
+                    w2 = Math.Ceiling(w2 * Math.Pow(10, 7)) / Math.Pow(10, 7);
+                    success = 0;
+                    iterationsCount++;
                 }
-                double delta = threshold - y;
-                w1 += delta * points[currentPoint].X * rateData[ratePicker.SelectedIndex];
-                w2 += delta * points[currentPoint].Y * rateData[ratePicker.SelectedIndex];
-                w1 = Math.Ceiling(w1 * Math.Pow(10, 7)) / Math.Pow(10, 7);
-                w2 = Math.Ceiling(w2 * Math.Pow(10, 7)) / Math.Pow(10, 7);
-                success = 0;
-                iterationsCount++;
+                solutionsCount++;
             }
-            await DisplayAlert("Result", $"Parameter values:\nW1 = {w1}\nW2 = {w2}\n" +
-                $"Execution time = {(DateTime.Now - startTime).TotalMilliseconds} ms\n" +
-                $"Number of iterations = {iterationsCount}", "Got it!");
+            await DisplayAlert("Result", $"Total solutions found in 5 seconds: {solutionsCount}", "Got it!");
         }
     }
 }
